@@ -1,7 +1,7 @@
 ---
 username: enabler
 user_sudo_password: "{{vault_user_sudo_password}}" #vault password is password
-user_public_key: /home/stefan/.ssh/server.pub #the path on localhost from which playbooks are run
+user_public_key: /home/stefan/.ssh/virtualbox.pub #the path on localhost from which playbooks are run
 journalctl_max_disk_usage: 1G
 
 wireguard_vpn_server_private_ipv4_address: 10.10.10.1

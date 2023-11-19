@@ -15,7 +15,7 @@ resource "digitalocean_droplet" "wireguard-vpn-dev-server" {
 # Create monitoring alerts
 resource "digitalocean_monitor_alert" "dev_cpu_alert" {
   alerts {
-    email = ["stefan.stosic@forwardslashny.com"]
+    email = ["stosic.n.stefan@forwardslashny.com"]
   }
   description = "CPU usage higher that 70%"
   type        = "v1/insights/droplet/cpu"
@@ -27,7 +27,7 @@ resource "digitalocean_monitor_alert" "dev_cpu_alert" {
 }
 resource "digitalocean_monitor_alert" "dev_disk_alert" {
   alerts {
-    email = ["stefan.stosic@forwardslashny.com"]
+    email = ["stosic.n.stefan@forwardslashny.com"]
   }
   description = "Disk usage higher that 70%"
   type        = "v1/insights/droplet/disk_utilization_percent"
@@ -39,7 +39,7 @@ resource "digitalocean_monitor_alert" "dev_disk_alert" {
 }
 resource "digitalocean_monitor_alert" "dev_memory_alert" {
   alerts {
-    email = ["stefan.stosic@forwardslashny.com"]
+    email = ["stosic.n.stefan@forwardslashny.com"]
   }
   description = "Memory usage higher that 70%"
   type        = "v1/insights/droplet/memory_utilization_percent"
