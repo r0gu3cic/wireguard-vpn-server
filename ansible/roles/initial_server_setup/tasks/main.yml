@@ -1,0 +1,89 @@
+---
+# Update repositories
+- name: Update repositories cache
+  apt: 
+    update_cache: yes
+# Set timezone to UTC
+- name: Set servers timezone
+  timezone:
+    name: UTC
+
+# Add regular user with sudo privileges and with ssh key 
+- name: Create a new regular user with sudo privileges
+  user:
+    name: "{{username}}"
+    password: "{{user_sudo_password}}"
+    update_password: on_create
+    state: present
+    groups: sudo
+    append: true
+    create_home: true
+    skeleton: /etc/skel
+    shell: /bin/bash
+- name: Set authorized key for new regular user with sudo privileges
+  authorized_key:
+    user: "{{username}}"
+    state: present
+    key: "{{ lookup('file', '{{user_public_key}}') }}"
+
+# Install necessary packages, start and enable them
+- name: Install aptitude
+  apt: name={{item}} state=present force_apt_get=yes
+  loop: ["aptitude"]
+- name: Install basic security packages
+  apt: name={{item}} state=present
+  loop: ["ufw", "fail2ban", "unattended-upgrades", "logrotate"]
+# Configure UFW for SSH
+- name: Change UFW configuration, allow SSH on port 22
+  ufw:
+    rule: allow
+    port: "22"
+  notify:
+    - reload ufw
+    - enable ufw
+# Configure SSH, changing only non default entries
+- name: Change SSH configuration, set PasswordAuthentication entry
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: "#*PasswordAuthentication.*"
+    replace: "PasswordAuthentication no"
+  notify:
+    - reload ssh
+# Configure journal disk usage
+- name: Change journal configuration, set SystemMaxUse entry
+  replace:
+    path: /etc/systemd/journald.conf
+    regexp: "#SystemMaxUse.*"
+    replace: "{{ ('SystemMaxUse=' + journalctl_max_disk_usage) }}"
+  notify:
+    - restart journald
+# Configure unattended-upgrades
+# Default is good enough for now
+# Configure logrotate
+# Default is good enough for now
+# Configure fail2ban
+- name: Create ssh jail 
+  template:
+    src: "files/sshd.conf"
+    dest: "/etc/fail2ban/jail.d/sshd.conf"
+  notify:
+    - reload fail2ban
+# Enable installed services
+- name: Start installed services
+  service: name={{item}} state=started
+  loop: ["ufw", "fail2ban", "unattended-upgrades", "logrotate"]
+- name: Enable installed services
+  service: name={{item}} enabled=yes
+  loop: ["ufw", "fail2ban", "unattended-upgrades", "logrotate"]
+- name: Install additional tools for a better quality of life
+  apt: name={{item}} state=present
+  loop: ["htop", "tree", "net-tools", "zip", "wget", "tcpdump", "curl", "git"]
+
+# Update system repositories cache and upgrade system
+- name: Update repositories cache
+  apt: 
+    update_cache: yes
+# Upgrade system
+- name: Upgrade system 
+  apt:
+    upgrade: full

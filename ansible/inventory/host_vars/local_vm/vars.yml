@@ -1,0 +1,11 @@
+---
+username: enabler
+user_sudo_password: "{{vault_user_sudo_password}}" #vault password is password
+user_public_key: /home/stefan/.ssh/server.pub #the path on localhost from which playbooks are run
+journalctl_max_disk_usage: 1G
+
+wireguard_vpn_server_private_ipv4_address: 10.10.10.1
+subnet_mask_ipv4: 24
+wireguard_vpn_server_private_ipv6_address: fd5b:2153:02e0::1
+subnet_mask_ipv6: 64
+listen_port: 51820

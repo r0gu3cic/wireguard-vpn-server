@@ -1,0 +1,12 @@
+[Interface]
+PrivateKey = {{private_key}}
+Address = {{wireguard_vpn_server_private_ipv4_address}}/{{subnet_mask_ipv4}}, {{wireguard_vpn_server_private_ipv6_address}}/{{subnet_mask_ipv6}}
+ListenPort = {{listen_port}}
+SaveConfig = true
+
+PostUp = ufw route allow in on wg0 out on {{interface_name}}
+PostUp = iptables -t nat -I POSTROUTING -o {{interface_name}} -j MASQUERADE
+PostUp = ip6tables -t nat -I POSTROUTING -o {{interface_name}} -j MASQUERADE
+PreDown = ufw route delete allow in on wg0 out on {{interface_name}}
+PreDown = iptables -t nat -D POSTROUTING -o {{interface_name}} -j MASQUERADE
+PreDown = ip6tables -t nat -D POSTROUTING -o {{interface_name}} -j MASQUERADE

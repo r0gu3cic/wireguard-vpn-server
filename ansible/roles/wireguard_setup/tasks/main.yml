@@ -1,0 +1,111 @@
+---
+# Update repositories
+- name: Update repositories cache
+  apt: 
+    update_cache: yes
+
+# Install WireGuard Server 
+- name: Install WireGuard Server
+  apt: 
+    name: wireguard
+    state: present
+
+# Create the private key for WireGuard and change the key permissions
+- name: Create a private key for WireGuard Server
+  shell: wg genkey | tee /etc/wireguard/private.key
+  register: private_result
+- name: Save private key as variable for later use during configuration
+  set_fact:
+    private_key: "{{ private_result.stdout }}"
+- name: Print the stored private key
+  debug:
+    var: private_key
+- name: Set proper permissions for a private key
+  file: 
+    path: /etc/wireguard/private.key
+    owner: root 
+    group: root
+    mode: "0600"
+
+# Create the public key
+- name: Create a public key for WireGuard Server
+  shell: cat /etc/wireguard/private.key | wg pubkey | tee /etc/wireguard/public.key
+  register: public_result
+- name: Save public key as variable for later use during configuration
+  set_fact:
+    public_key: "{{ public_result.stdout }}"
+- name: Print the stored public key
+  debug:
+    var: public_key
+
+# Enable routing/traffic forwarding
+- name: Enable IPv4 forwarding by WireGuard Server 
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+- name: Enable IPv6 forwarding by WireGuard Server 
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+# Get public interface info for configuration use
+- name: Get public interface info
+  shell: ip route list default
+  register: public_interface_result
+- name: Store stdout value in a variable
+  set_fact:
+    public_interface: "{{ public_interface_result.stdout }}"
+- name: Extract interface name
+  set_fact:
+    interface_name: "{{ public_interface | regex_search('dev\\s(\\w+)', '\\1') | first }}"
+- name: Print the extracted interface name
+  debug:
+    var: interface_name
+
+# Get the WireGuard Server DNS resolver information
+- name: Get the DNS resolver information
+  shell: resolvectl dns {{interface_name}}
+  register: dns_resolver_result
+- name: Store stdout value in a variable
+  set_fact:
+    dns_resolver_info: "{{ dns_resolver_result.stdout }}"
+- name: Extract DNS resolvers information
+  set_fact:
+    dns_resolver: "{{ dns_resolver_info | regex_search('Link \\d+ \\(\\w+\\): (\\d+\\.\\d+\\.\\d+\\.\\d+)', '\\1') | first }}"
+- name: Print the extracted DNS resolvers information
+  debug:
+    var: dns_resolver
+
+# Create WireGuard Server Configuration
+- name: Create a WireGuard Server configuration file
+  template:
+    src: "files/wg0.conf.j2"
+    dest: "/etc/wireguard/wg0.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+# Change Firewall config to allow WireGuard traffic
+- name: Change UFW configuration, allow WireGuard port on port {{listen_port}}
+  ufw:
+    rule: allow
+    port: "{{listen_port}}"
+    proto: udp
+  notify:
+    - reload ufw
+
+# Start and enable WireGuard server
+- name: Start WireGuard VPN Server as a service on system
+  systemd:
+    name: wg-quick@wg0.service
+    state: started
+- name: Enable WireGuard VPN Server as a service on system
+  systemd:
+    name: wg-quick@wg0.service
+    enabled: true

@@ -1,0 +1,13 @@
+# local terraform directories and files
+**/.terraform/*
+# should stay or could be in .gitignore but then we would have to init whenever we clone repo
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
+
+# used for autodecrypt of ansible-vault, this is here just in case, I keep this file outside of the repository files
+vault_pass.txt
+
+# dont track vscode settings
+.vscode

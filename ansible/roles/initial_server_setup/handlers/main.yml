@@ -1,0 +1,27 @@
+---
+- name: reload ufw
+  ufw:
+    state: reloaded
+
+- name: enable ufw
+  ufw:
+    state: enabled
+
+- name: reload ssh
+  service:
+    name: ssh
+    state: reloaded
+
+- name: reload fail2ban
+  service:
+    name: fail2ban
+    state: reloaded
+
+- name: restart journald
+  become: true
+  systemd: name=systemd-journald state=restarted
+
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded

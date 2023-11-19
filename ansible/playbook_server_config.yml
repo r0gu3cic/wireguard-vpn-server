@@ -1,0 +1,7 @@
+#ansible script that will configure server
+---
+- hosts: "{{ hosts }}"
+  become: true
+  roles:
+  - role: initial_server_setup
+  - role: wireguard_setup
