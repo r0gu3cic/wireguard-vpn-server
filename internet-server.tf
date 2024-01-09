@@ -1,7 +1,7 @@
-# Create dev server
-resource "digitalocean_droplet" "wireguard-vpn-dev-server" {
+# Create internet server
+resource "digitalocean_droplet" "wireguard-vpn-internet-server" {
   image = "ubuntu-22-04-x64"
-  name = "wireguard-vpn-dev-server"
+  name = "wireguard-vpn-internet-server"
   region = "nyc1"
   monitoring = true
   ipv6 = true
@@ -10,12 +10,12 @@ resource "digitalocean_droplet" "wireguard-vpn-dev-server" {
 # Slug size
   size = "s-1vcpu-1gb" # CPU (1vCPU), RAM (1GB), DISK (25GB), TRANSFER 1TB, PRICE 6$
   # Import created ssh key to the droplet
-  ssh_keys = [digitalocean_ssh_key.ansible-configuration-key.fingerprint]
+  ssh_keys = [digitalocean_ssh_key.ansible-root-configuration-key.fingerprint]
 }
 # Create monitoring alerts
-resource "digitalocean_monitor_alert" "dev_cpu_alert" {
+resource "digitalocean_monitor_alert" "wireguard_vpn_internet_cpu_alert" {
   alerts {
-    email = ["stosic.n.stefan@forwardslashny.com"]
+    email = ["stosic.n.stefan@gmail.com"]
   }
   description = "CPU usage higher that 70%"
   type        = "v1/insights/droplet/cpu"
@@ -23,11 +23,11 @@ resource "digitalocean_monitor_alert" "dev_cpu_alert" {
   window      = "5m"
   compare     = "GreaterThan"
   value       = 70
-  entities    = [digitalocean_droplet.wireguard-vpn-dev-server.id]
+  entities    = [digitalocean_droplet.wireguard-vpn-internet-server.id]
 }
-resource "digitalocean_monitor_alert" "dev_disk_alert" {
+resource "digitalocean_monitor_alert" "wireguard_vpn_internet_disk_alert" {
   alerts {
-    email = ["stosic.n.stefan@forwardslashny.com"]
+    email = ["stosic.n.stefan@gmail.com"]
   }
   description = "Disk usage higher that 70%"
   type        = "v1/insights/droplet/disk_utilization_percent"
@@ -35,11 +35,11 @@ resource "digitalocean_monitor_alert" "dev_disk_alert" {
   window      = "5m"
   compare     = "GreaterThan"
   value       = 70
-  entities    = [digitalocean_droplet.wireguard-vpn-dev-server.id]
+  entities    = [digitalocean_droplet.wireguard-vpn-internet-server.id]
 }
-resource "digitalocean_monitor_alert" "dev_memory_alert" {
+resource "digitalocean_monitor_alert" "wireguard_vpn_internet_memory_alert" {
   alerts {
-    email = ["stosic.n.stefan@forwardslashny.com"]
+    email = ["stosic.n.stefan@gmail.com"]
   }
   description = "Memory usage higher that 70%"
   type        = "v1/insights/droplet/memory_utilization_percent"
@@ -47,5 +47,5 @@ resource "digitalocean_monitor_alert" "dev_memory_alert" {
   window      = "5m"
   compare     = "GreaterThan"
   value       = 70
-  entities    = [digitalocean_droplet.wireguard-vpn-dev-server.id]
+  entities    = [digitalocean_droplet.wireguard-vpn-internet-server.id]
 }
